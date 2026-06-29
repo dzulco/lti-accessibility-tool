@@ -11,6 +11,10 @@ public class LtiLaunchDTO {
     private String courseId;
     private String courseTitle;
 
+    // ================= SECTION =================
+    private String sectionId;
+    private String sectionTitle;
+
     // ================= MODULE =================
     private String moduleId;
     private String moduleTitle;
@@ -93,6 +97,22 @@ public class LtiLaunchDTO {
         this.message = message;
     }
 
+    public String getSectionId() {
+        return sectionId;
+    }
+
+    public void setSectionId(String sectionId) {
+        this.sectionId = sectionId;
+    }
+
+    public String getSectionTitle() {
+        return sectionTitle;
+    }
+
+    public void setSectionTitle(String sectionTitle) {
+        this.sectionTitle = sectionTitle;
+    }
+
     @Override
     public String toString() {
         return "LtiLaunchDTO{" +
@@ -101,6 +121,8 @@ public class LtiLaunchDTO {
                 ", email='" + email + '\'' +
                 ", courseId='" + courseId + '\'' +
                 ", courseTitle='" + courseTitle + '\'' +
+                ", sectionId='" + sectionId + '\'' +
+                ", sectionTitle='" + sectionTitle + '\'' +
                 ", moduleId='" + moduleId + '\'' +
                 ", moduleTitle='" + moduleTitle + '\'' +
                 ", status='" + status + '\'' +

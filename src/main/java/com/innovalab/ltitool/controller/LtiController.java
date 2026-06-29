@@ -4,6 +4,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.innovalab.ltitool.dto.LtiLaunchDTO;
 import com.innovalab.ltitool.util.LtiMapper;
+import com.innovalab.ltitool.service.MoodleContentResolver;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,76 +14,236 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 
+
 @RestController
 @RequestMapping("/lti")
 public class LtiController {
 
+    private final MoodleContentResolver moodleContentResolver;
 
-    @PostMapping("/launch")
-    public ResponseEntity<?> launch(@RequestParam Map<String, String> params) {
 
-        System.out.println("\n2) ========== LTI LAUNCH ==========");
-        // se obtiene el token
-        String idToken = params.get("id_token");
-
-        if (idToken == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        // se decodifica con JSON Web Token
-        DecodedJWT jwt = JWT.decode(idToken);
-
-        // se mapea el JSON a un DTO
-        LtiLaunchDTO dto = LtiMapper.fromJWT(jwt);
-
-        // estos son los datos que respondemos al LMS
-        System.out.println("\n========== DTO RESPONSE ==========");
-        System.out.println(dto);
-
-        // respondemos con un HTML
-        return ResponseEntity.ok(buildHtml(dto));
+    public LtiController(
+            MoodleContentResolver moodleContentResolver
+    ){
+        this.moodleContentResolver = moodleContentResolver;
     }
-
-    // =========================
-    // LOGIN (OIDC START FIXED)
-    // =========================
+    // =====================================================
+    // OIDC LOGIN
+    // =====================================================
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@RequestParam Map<String, String> params) {
+    public ResponseEntity<Void> login(@RequestParam Map<String,String> params){
 
-        System.out.println("\n1) ========== LTI LOGIN ==========");
-        params.forEach((k, v) -> System.out.println(k + " = " + v));
+        System.out.println("\n========== LTI LOGIN ==========");
+        params.forEach((k,v) -> System.out.println(k+" = "+v) );
 
-        // FIX: nunca mandar null en OIDC
         String state = params.get("state");
         String nonce = params.get("nonce");
 
-        if (state == null) state = UUID.randomUUID().toString();
-        if (nonce == null) nonce = UUID.randomUUID().toString();
+        if(state == null)
+            state = UUID.randomUUID().toString();
 
-        // response_type=id_token quiero que me envie directamente el JWT sin OAuth
-        // target_link_uri: cuando termina el redirect vuelva a http://localhost:8080/lti/launch (metodo que recibe el token)
+        if(nonce == null)
+            nonce = UUID.randomUUID().toString();
 
         String redirect =
+
                 "http://localhost/mod/lti/auth.php?"
                         + "scope=openid"
                         + "&response_type=id_token"
                         + "&response_mode=form_post"
-                        + "&client_id=" + params.get("client_id")
-                        + "&redirect_uri=" + URLEncoder.encode(params.get("target_link_uri"), StandardCharsets.UTF_8)
-                        + "&login_hint=" + params.get("login_hint")
-                        + "&lti_message_hint=" + URLEncoder.encode(params.get("lti_message_hint"), StandardCharsets.UTF_8)
-                        + "&state=" + state
-                        + "&nonce=" + nonce;
+                        + "&client_id="
+                        + params.get("client_id")
+                        + "&redirect_uri="
+                        + URLEncoder.encode(
+                        params.get("target_link_uri"),
+                        StandardCharsets.UTF_8
+                )
+                        + "&login_hint="
+                        + params.get("login_hint")
+                        + "&lti_message_hint="
+                        + URLEncoder.encode(
+                        params.get("lti_message_hint"),
+                        StandardCharsets.UTF_8
+                )
+
+                        + "&state="
+                        + state
+                        + "&nonce="
+                        + nonce;
 
         System.out.println("\n========== REDIRECT FINAL ==========");
         System.out.println(redirect);
 
-        return ResponseEntity.status(302)
+        return ResponseEntity
+                .status(302)
                 .header("Location", redirect)
                 .build();
     }
 
-    private String buildHtml(LtiLaunchDTO dto) {
+    // =====================================================
+    // LTI LAUNCH
+    // Estudiante o Deep Linking
+    // =====================================================
+    @PostMapping("/launch")
+    public ResponseEntity<?> launch(@RequestParam Map<String,String> params ){
+
+        System.out.println("\n========== LTI LAUNCH ==========");
+        String idToken = params.get("id_token");
+
+        if(idToken == null){
+            return ResponseEntity
+                    .badRequest()
+                    .body("Missing id_token");
+        }
+
+        DecodedJWT jwt =  JWT.decode(idToken);
+
+        String messageType = jwt.getClaim("https://purl.imsglobal.org/spec/lti/claim/message_type"                      )
+                        .asString();
+
+        System.out.println("MESSAGE TYPE = " + messageType);
+        /*
+         * Profesor insertando contenido
+         */
+        if("LtiDeepLinkingRequest".equals(messageType)){
+            System.out.println(
+                    "========== DEEP LINKING MODE =========="
+            );
+            return ResponseEntity.ok(
+                    buildDeepLinkPage()
+            );
+        }
+
+        /*
+         * Alumno entrando a la herramienta
+         */
+        System.out.println(
+                "========== RESOURCE LINK MODE =========="
+        );
+
+        LtiLaunchDTO dto = LtiMapper.fromJWT(jwt);
+        moodleContentResolver.resolveSectionId(dto);
+        System.out.println(dto);
+
+        return ResponseEntity.ok(buildStudentPagePDF(dto));
+
+    }
+
+    private String buildStudentPagePDF(LtiLaunchDTO dto) {
+
+        String html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>LTI Tool</title>
+    </head>
+
+    <body>
+
+    <header>📘 LTI Accessibility Tool</header>
+
+    <div class="container">
+
+        <h3>Curso: {COURSE}</h3>
+        <h4>Módulo: {MODULE}</h4>
+
+    </div>
+
+    <script>
+
+        // =========================
+        // CONTEXTO LTI (CLAVE)
+        // =========================
+        const LTI = {
+            courseId: "{COURSE_ID}",
+            sectionId: "{SECTION_ID}",
+            moduleId: "{MODULE_ID}"
+        };
+
+        // =========================
+        // PDF DIRECTO
+        // =========================
+        async function loadPdf() {
+
+            const url =
+                "/api/pdf?courseId=" + LTI.courseId +
+                "&sectionId=" + LTI.sectionId;
+
+            const res = await fetch(url);
+
+            const blob = await res.blob();
+
+            const pdfUrl = URL.createObjectURL(blob);
+
+            document.getElementById("pdfFrame").src = pdfUrl;
+        }
+
+        window.onload = loadPdf;
+
+    </script>
+
+    <iframe id="pdfFrame"
+            style="width:100%;height:600px"></iframe>
+
+    </body>
+    </html>
+    """;
+
+        return html
+                .replace("{COURSE}", safe(dto.getCourseTitle()))
+                .replace("{MODULE}", safe(dto.getModuleTitle()))
+                .replace("{COURSE_ID}", String.valueOf(dto.getCourseId()))
+                .replace("{SECTION_ID}", String.valueOf(dto.getSectionId()))
+                .replace("{MODULE_ID}", String.valueOf(dto.getModuleId()));
+    }
+
+
+
+
+    // =====================================================
+    // PANTALLA PROFESOR
+    // =====================================================
+    private String buildDeepLinkPage(){
+
+
+        return """
+        <!DOCTYPE html>
+
+        <html>
+
+        <body>
+
+
+        <h2>
+        🤖 Asistente de Accesibilidad IA
+        </h2>
+
+
+        <p>
+        Insertar herramienta en este curso
+        </p>
+
+
+        <button>
+        Agregar asistente
+        </button>
+
+
+        </body>
+
+        </html>
+        """;
+
+    }
+
+
+
+
+
+
+
+    private String buildStudentPage(LtiLaunchDTO dto) {
 
         String html = """
             <!DOCTYPE html>
@@ -381,28 +543,29 @@ public class LtiController {
             """;
 
 
-                    return html
-                            .replace("{NAME}", safe(dto.getName()))
-                            .replace("{EMAIL}", safe(dto.getEmail()))
-                            .replace("{COURSE}", safe(dto.getCourseTitle()))
-                            .replace("{MODULE}", safe(dto.getModuleTitle()));
-
-                }
-
-
-
-                private String safe(String value){
-
-                    if(value == null){
-                        return "";
-                    }
-
-
-                    return value
-                            .replace("&","&amp;")
-                            .replace("<","&lt;")
-                            .replace(">","&gt;")
-                            .replace("\"","&quot;");
+        return html
+                .replace("{NAME}", safe(dto.getName()))
+                .replace("{EMAIL}", safe(dto.getEmail()))
+                .replace("{COURSE}", safe(dto.getCourseTitle()))
+                .replace("{MODULE}", safe(dto.getModuleTitle()));
 
     }
+
+
+
+    private String safe(String value){
+
+        if(value == null){
+            return "";
+        }
+
+
+        return value
+                .replace("&","&amp;")
+                .replace("<","&lt;")
+                .replace(">","&gt;")
+                .replace("\"","&quot;");
+
+    }
+
 }

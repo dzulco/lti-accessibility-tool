@@ -21,6 +21,8 @@ public class LtiMapper {
         Map<String, Object> resource =
                 jwt.getClaim("https://purl.imsglobal.org/spec/lti/claim/resource_link").asMap();
 
+        System.out.println(resource);
+
         if (context != null) {
             dto.setCourseId((String) context.get("id"));
             dto.setCourseTitle((String) context.get("title"));
@@ -30,6 +32,12 @@ public class LtiMapper {
             dto.setModuleId((String) resource.get("id"));
             dto.setModuleTitle((String) resource.get("title"));
         }
+
+        // Obtener los parámetros personalizados
+        Map<String, Object> customClaims =
+                jwt.getClaim("https://purl.imsglobal.org/spec/lti/claim/custom").asMap();
+
+
 
         dto.setStatus("OK");
         dto.setMessage("LTI launch successful");
