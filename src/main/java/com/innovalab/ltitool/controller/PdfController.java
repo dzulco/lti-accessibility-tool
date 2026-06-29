@@ -1,6 +1,5 @@
 package com.innovalab.ltitool.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.innovalab.ltitool.service.MoodleClient;
 import com.innovalab.ltitool.service.PdfService;
 import org.springframework.http.HttpHeaders;
@@ -16,24 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class PdfController {
 
-    private final MoodleClient moodleClient;
     private final PdfService pdfService;
 
-    public PdfController(MoodleClient moodleClient, PdfService pdfService) {
-        this.moodleClient = moodleClient;
+    public PdfController(PdfService pdfService) {
         this.pdfService = pdfService;
     }
 
     @GetMapping("/pdf")
     public ResponseEntity<byte[]> getPdf(
-            @RequestParam Long courseId,
-            @RequestParam Integer sectionId) {
+            @RequestParam String fileUrl) {
 
-        // 1. traer contenido del curso (WS)
-        JsonNode sections = moodleClient.getCourseContents(courseId);
-
-        // 2. resolver URL del PDF
-        String fileUrl = pdfService.extractPdfUrl(sections, sectionId);
 
         // 3. descargar PDF directamente
         byte[] pdfBytes = pdfService.downloadPdf(fileUrl);

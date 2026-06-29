@@ -158,7 +158,8 @@ public class LtiController {
         const LTI = {
             courseId: "{COURSE_ID}",
             sectionId: "{SECTION_ID}",
-            moduleId: "{MODULE_ID}"
+            moduleId: "{MODULE_ID}",
+            pdfUrl: "{PDF_URL}"
         };
 
         // =========================
@@ -166,9 +167,7 @@ public class LtiController {
         // =========================
         async function loadPdf() {
 
-            const url =
-                "/api/pdf?courseId=" + LTI.courseId +
-                "&sectionId=" + LTI.sectionId;
+            const url = "/api/pdf?fileUrl=" + LTI.pdfUrl;
 
             const res = await fetch(url);
 
@@ -196,7 +195,8 @@ public class LtiController {
                 .replace("{COURSE_ID}", String.valueOf(dto.getCourseId()))
                 .replace("{SECTION_ID}", String.valueOf(dto.getSectionId()))
                 .replace("{SECTION_TITLE}", String.valueOf(dto.getSectionTitle()))
-                .replace("{MODULE_ID}", String.valueOf(dto.getModuleId()));
+                .replace("{MODULE_ID}", String.valueOf(dto.getModuleId()))
+                .replace("{PDF_URL}", String.valueOf(dto.getPdfUrl()));
     }
 
 

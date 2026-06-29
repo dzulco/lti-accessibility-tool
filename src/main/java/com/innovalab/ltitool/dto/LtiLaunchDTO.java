@@ -23,6 +23,9 @@ public class LtiLaunchDTO {
     private String status;
     private String message;
 
+    private String pdfName;
+    private String pdfUrl;
+
     // getters/setters
 
     public String getUserId() {
@@ -113,6 +116,22 @@ public class LtiLaunchDTO {
         this.sectionTitle = sectionTitle;
     }
 
+    public String getPdfName() {
+        return pdfName;
+    }
+
+    public void setPdfName(String pdfName) {
+        this.pdfName = pdfName;
+    }
+
+    public String getPdfUrl() {
+        return pdfUrl;
+    }
+
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
+    }
+
     @Override
     public String toString() {
         return "LtiLaunchDTO{" +
@@ -127,6 +146,8 @@ public class LtiLaunchDTO {
                 ", moduleTitle='" + moduleTitle + '\'' +
                 ", status='" + status + '\'' +
                 ", message='" + message + '\'' +
+                ", pdfName='" + pdfName + '\'' +
+                ", pdfUrl='" + pdfUrl + '\'' +
                 '}';
     }
 }
