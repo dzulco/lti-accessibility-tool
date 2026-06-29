@@ -46,7 +46,7 @@ public class PdfService {
 
     public byte[] downloadPdf(String fileUrl) {
 
-        // agregar token SI es necesario
+        // agregar token SI es necesario ( TOKEN Es el que da el lms si habilitas apí con token)
         String finalUrl = fileUrl + (fileUrl.contains("?") ? "&" : "?")
                 + "token=" + props.getToken();
 

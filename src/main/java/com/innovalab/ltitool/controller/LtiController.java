@@ -146,7 +146,7 @@ public class LtiController {
     <div class="container">
 
         <h3>Curso: {COURSE}</h3>
-        <h4>Módulo: {MODULE}</h4>
+        <h4>Seccion: {SECTION_TITLE}</h4>
 
     </div>
 
@@ -195,6 +195,7 @@ public class LtiController {
                 .replace("{MODULE}", safe(dto.getModuleTitle()))
                 .replace("{COURSE_ID}", String.valueOf(dto.getCourseId()))
                 .replace("{SECTION_ID}", String.valueOf(dto.getSectionId()))
+                .replace("{SECTION_TITLE}", String.valueOf(dto.getSectionTitle()))
                 .replace("{MODULE_ID}", String.valueOf(dto.getModuleId()));
     }
 
