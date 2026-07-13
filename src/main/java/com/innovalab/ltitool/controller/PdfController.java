@@ -21,12 +21,14 @@ public class PdfController {
 
     @GetMapping("/view")
     public ResponseEntity<byte[]> getPdf(@RequestParam String fileUrl) {
+        System.out.println("====== SOLICITUD DE PDF ======");
+        System.out.println(fileUrl);
 
         byte[] pdfBytes = pdfService.downloadPdf(fileUrl);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION,
+                .header(HttpHeaders.CONTENT_DISPOSITION,    
                         "inline; filename=archivo.pdf")
                 .body(pdfBytes);
     }

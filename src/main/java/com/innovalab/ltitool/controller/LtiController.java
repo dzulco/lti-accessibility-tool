@@ -3,6 +3,7 @@ package com.innovalab.ltitool.controller;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.innovalab.ltitool.dto.LtiLaunchDTO;
+import com.innovalab.ltitool.service.LtiPersistenceService;
 import com.innovalab.ltitool.util.LtiMapper;
 import com.innovalab.ltitool.service.MoodleContentResolver;
 
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class LtiController {
 
     private final MoodleContentResolver moodleContentResolver;
-
+    private final LtiPersistenceService ltiPersistenceService;
     @Value("${moodle.auth-url}")
     private String authUrl;
 
@@ -32,9 +33,10 @@ public class LtiController {
 
 
     public LtiController(
-            MoodleContentResolver moodleContentResolver
-    ){
+            MoodleContentResolver moodleContentResolver, LtiPersistenceService ltiPersistenceService
+    ) {
         this.moodleContentResolver = moodleContentResolver;
+        this.ltiPersistenceService = ltiPersistenceService;
     }
     // =====================================================
     // OIDC LOGIN
@@ -54,7 +56,7 @@ public class LtiController {
         if(nonce == null)
             nonce = UUID.randomUUID().toString();
 
-        String redirect = authUrl +"?"
+                    String redirect = authUrl +"?"
                         + "scope=openid"
                         + "&response_type=id_token"
                         + "&response_mode=form_post"
@@ -109,8 +111,8 @@ public class LtiController {
         LtiLaunchDTO dto = LtiMapper.fromJWT(jwt);
         moodleContentResolver.resolveSectionId(dto);
 
-        //TODO log this
-        System.out.println(dto);
+        ltiPersistenceService.saveLaunch(dto);
+
 
         //return ResponseEntity.ok(buildStudentPagePDF(dto));
         //return ResponseEntity.ok(buildStudentPage(dto));
