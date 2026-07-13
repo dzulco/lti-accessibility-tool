@@ -36,8 +36,7 @@ public class LtiPersistenceService {
     @Async // para que no espere la respuesta quien lo invoque
     public void saveUserPreferences(UserPreferencesDTO dto) {
         try {
-            // Un set simple en Java con la fecha y hora exacta actual (UTC)
-            dto.setLastUpdated(Instant.now().toEpochMilli());
+            dto.setLastUpdated(Instant.now());
 
             // Lo guarda como un documento nuevo en tu historial
             this.db.collection("accessibility_events").add(dto);

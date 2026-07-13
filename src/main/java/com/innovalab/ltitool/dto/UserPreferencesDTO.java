@@ -1,5 +1,6 @@
 package com.innovalab.ltitool.dto;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,7 +8,7 @@ public class UserPreferencesDTO {
 
     private String userId;
     private Map<String, String> tools;
-    private Long lastUpdated;
+    private Instant lastUpdated;
 
     // Constructor vacío obligatorio para la deserialización y Firestore
     public UserPreferencesDTO() {
@@ -15,7 +16,7 @@ public class UserPreferencesDTO {
     }
 
     // Constructor completo de conveniencia
-    public UserPreferencesDTO(String userId, Map<String, String> tools, Long lastUpdated) {
+    public UserPreferencesDTO(String userId, Map<String, String> tools, Instant lastUpdated) {
         this.userId = userId;
         this.tools = tools != null ? tools : new HashMap<>();
         this.lastUpdated = lastUpdated;
@@ -38,11 +39,11 @@ public class UserPreferencesDTO {
         this.tools = tools;
     }
 
-    public Long getLastUpdated() {
+    public Instant getLastUpdated() {
         return lastUpdated;
     }
 
-    public void setLastUpdated(Long lastUpdated) {
+    public void setLastUpdated(Instant lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 }
