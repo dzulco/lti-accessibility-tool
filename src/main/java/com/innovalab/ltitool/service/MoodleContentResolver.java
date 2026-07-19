@@ -27,7 +27,6 @@ public class MoodleContentResolver {
     public void resolveSectionId(LtiLaunchDTO dto) {
 
         JsonNode sections = moodleClient.getCourseContents(Long.valueOf(dto.getCourseId()));
-        System.out.println("DEBUG: JSON recibido de Moodle: " + sections.toString());
         String target = dto.getResourceLinkId(); // 👈 CLAVE REAL
 
         for (JsonNode section : sections) {
