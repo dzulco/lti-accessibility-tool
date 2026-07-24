@@ -21,6 +21,7 @@ public class LtiPersistenceService {
     /**
      * Guarda el historial de accesos (Launches) provenientes de Moodle
      */
+    @Async
     public void saveLaunch(LtiLaunchDTO dto) {
         try {
             this.db.collection("lti_launches")
