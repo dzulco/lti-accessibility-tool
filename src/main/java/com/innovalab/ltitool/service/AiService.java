@@ -1,6 +1,6 @@
 package com.innovalab.ltitool.service;
 
-import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -89,10 +89,9 @@ public class AiService {
     private String executeAiCall(String prompt) {
         try {
             return chatClient.prompt(prompt)
-                    .options(GoogleGenAiChatOptions.builder()
-                            .temperature(0.0) // Desactiva la aleatoriedad -> Respuestas más rápidas
-                            .topP(0.1)
-                            .build())
+                    .options(options -> options
+                            .temperature(0.0)
+                            .topP(0.1))
                     .call()
                     .content();
         } catch (Exception e) {
