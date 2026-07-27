@@ -2,6 +2,7 @@ package com.innovalab.ltitool.service;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 @Service
 public class AiService {
@@ -57,7 +58,7 @@ public class AiService {
         return executeAiCall(query + text);
     }
 
-   public String generateTitleAndSections(String text) {
+   public Flux<String> generateTitleAndSections(String text) {
         String query = "Actúa como un profesor experto en educación universitaria. Tu tarea es analizar el siguiente texto académico\n" +
                 "        y organizar el siguiente texto plano asignándole un título principal, un subtítulo y divídelo en secciones\n" +
                 "       lógicas agregando un título a cada sección. RESPETA EL TEXTO ORIGINAL EXACTAMENTE SIN ALTERAR NI CAMBIAR UNA\n" +
