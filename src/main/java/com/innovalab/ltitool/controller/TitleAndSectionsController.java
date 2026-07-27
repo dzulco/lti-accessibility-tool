@@ -3,6 +3,7 @@ package com.innovalab.ltitool.controller;
 import com.innovalab.ltitool.service.AiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 
 @RestController
@@ -16,10 +17,8 @@ public class TitleAndSectionsController {
         this.aiService = aiService;
     }
 
-    @PostMapping
-    public ResponseEntity<String> generateTitleAndSections(@RequestBody String text) {
-
-        String generatedTitleAndSections = aiService.generateTitleAndSections(text);
-        return ResponseEntity.ok(generatedTitleAndSections);
+    @PostMapping(value = "/generate-sections-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> generateSectionsStream(@RequestBody String text) {
+        return aiService.generateTitleAndSections(text);
     }
 }
