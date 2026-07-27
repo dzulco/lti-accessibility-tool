@@ -1,6 +1,6 @@
 package com.innovalab.ltitool.service;
 
-import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
 import org.springframework.stereotype.Service;
 
 @Service
