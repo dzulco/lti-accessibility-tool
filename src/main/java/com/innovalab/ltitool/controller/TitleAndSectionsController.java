@@ -17,8 +17,8 @@ public class TitleAndSectionsController {
         this.aiService = aiService;
     }
 
-    @PostMapping(value = "/generate-sections-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> generateSectionsStream(@RequestBody String text) {
+    @PostMapping(value = "/api/v1/titleAndSections", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> generateTitleAndSections(@RequestBody String text) {
         return aiService.generateTitleAndSections(text);
     }
 }
