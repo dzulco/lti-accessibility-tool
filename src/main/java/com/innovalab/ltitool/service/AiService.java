@@ -59,39 +59,45 @@ public class AiService {
     }
 
    public Flux<String> generateTitleAndSections(String text) {
-        // Log para auditar en Spring Boot exactamente qué llega
-        System.out.println(">>> LONGITUD DEL TEXTO RECIBIDO EN JAVA: " + (text != null ? text.length() : 0));
+    // Log para auditar en Spring Boot exactamente qué llega
+    System.out.println(">>> LONGITUD DEL TEXTO RECIBIDO EN JAVA: " + (text != null ? text.length() : 0));
 
-        String query = """
-                Tu única tarea es analizar el texto suministrado y devolver un objeto JSON estructurado.
+    String query = """
+            Tu única tarea es analizar el texto suministrado, segmentarlo y devolver un objeto JSON estructurado.
 
-                REGLAS ESTRICTAS DE FORMATO:
-                1. Responde ÚNICAMENTE con el objeto JSON. 
-                2. PROHIBIDO incluir introducciones, saludos, disculpas, notas o bloques de markdown (como ```json).
-                3. Comienza directamente con '{' y termina con '}'.
+            REGLAS CRÍTICAS DE CONTENIDO (OBLIGATORIAS):
+            1. CONSERVACIÓN ÍNTEGRA: El campo "contenido" de cada sección DEBE incluir el texto VERBATIM (literal, palabra por palabra) del documento original.
+            2. PROHIBIDO RESUMIR: Queda estrictamente prohibido resumir, sintetizar, parafrasear, omitir oraciones o acortar información. Todo el texto de entrada debe quedar repartido entre las secciones.
+            3. COPIAR Y PEGAR: Trata el texto original como inmutable. Solo debes identificar dónde empieza/termina cada sección y colocar la totalidad de ese texto dentro de su respectivo "contenido".
 
-                ESTRUCTURA DEL JSON:
+            REGLAS ESTRICTAS DE FORMATO:
+            1. Responde ÚNICAMENTE con el objeto JSON válido. 
+            2. PROHIBIDO incluir introducciones, saludos, disculpas, notas o bloques de markdown (como ```json).
+            3. Comienza directamente con '{' y termina con '}'.
+            4. Si utilizas comillas dobles dentro del texto de "contenido", asegúrate de escaparlas adecuadamente con \\" para no romper el JSON.
+
+            ESTRUCTURA DEL JSON:
+            {
+              "titulo": "Título representativo",
+              "subtitulo": "Subtítulo representativo",
+              "secciones": [
                 {
-                  "titulo": "Título representativo",
-                  "subtitulo": "Subtítulo representativo",
-                  "secciones": [
-                    {
-                      "titulo_seccion": "Título de la sección",
-                      "contenido": "Texto exacto de esta sección"
-                    }
-                  ]
+                  "titulo_seccion": "Título de la sección",
+                  "contenido": "Texto literal, completo y sin resumir de esta sección"
                 }
+              ]
+            }
 
-                A continuación se presenta el contenido a procesar:
-                ----------------------------------------
-                """ + text + """
-                ----------------------------------------
-                """;
+            A continuación se presenta el contenido a procesar:
+            ----------------------------------------
+            """ + text + """
+            ----------------------------------------
+            """;
 
-        return chatClient.prompt(query)
-                .stream()
-                .content();
-    }
+    return chatClient.prompt(query)
+            .stream()
+            .content();
+}
 
 
     // Centralized private method with error handling
