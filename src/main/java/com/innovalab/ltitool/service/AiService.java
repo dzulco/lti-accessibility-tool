@@ -59,25 +59,35 @@ public class AiService {
     }
 
    public Flux<String> generateTitleAndSections(String text) {
-        String query = "Actúa como un profesor experto en educación universitaria. Tu tarea es analizar el siguiente texto académico\n" +
-                "        y organizar el siguiente texto plano asignándole un título principal, un subtítulo y divídelo en secciones\n" +
-                "       lógicas agregando un título a cada sección. RESPETA EL TEXTO ORIGINAL EXACTAMENTE SIN ALTERAR NI CAMBIAR UNA\n" +
-                "        SOLA PALABRA: REGLAS ESTRICTAS:\n" +
-                "        1. Crea la cantidad de secciones que creas apropiadas.\n" +
-                "        2. Tu respuesta debe tener el siguiente formato estricto de JSON (para que mi programa lo procese fácilmente):\n" +
-                "        {\n" +
-                "        \"titulo\": \"Título que represente al texto.\",\n" +
-                "        \"subtitulo\": \"Subtítulo que represente al texto.\",\n" +
-                "        \"secciones\": [\n" +
-                "                         {\n" +
-                "                          \"titulo_seccion\": \"Título que represente a la sección.\",\n" +
-                "                          \"contenido\": \"Aquí va la parte del texto que decidiste ubicar aquí.\"\n" +
-                "                         }\n" +
-                "                       ]\n" +
-                "        }\n" +
-                "        3. RESPETA EL TEXTO ORIGINAL EXACTAMENTE SIN ALTERAR NI CAMBIAR UNA SOLA PALABRA\n" +
-                "        4. NO inventes información, no agregues introducciones, saludos ni explicaciones. Devuelve SOLAMENTE el formato JSON solicitado.\n" +
-                "        TEXTO A ANALIZAR: ";
+        // Log para auditar en Spring Boot exactamente qué llega
+        System.out.println(">>> LONGITUD DEL TEXTO RECIBIDO EN JAVA: " + (text != null ? text.length() : 0));
+
+        String query = """
+                Tu única tarea es analizar el texto suministrado y devolver un objeto JSON estructurado.
+
+                REGLAS ESTRICTAS DE FORMATO:
+                1. Responde ÚNICAMENTE con el objeto JSON. 
+                2. PROHIBIDO incluir introducciones, saludos, disculpas, notas o bloques de markdown (como ```json).
+                3. Comienza directamente con '{' y termina con '}'.
+
+                ESTRUCTURA DEL JSON:
+                {
+                  "titulo": "Título representativo",
+                  "subtitulo": "Subtítulo representativo",
+                  "secciones": [
+                    {
+                      "titulo_seccion": "Título de la sección",
+                      "contenido": "Texto exacto de esta sección"
+                    }
+                  ]
+                }
+
+                A continuación se presenta el contenido a procesar:
+                ----------------------------------------
+                """ + text + """
+                ----------------------------------------
+                """;
+
         return chatClient.prompt(query)
                 .stream()
                 .content();
