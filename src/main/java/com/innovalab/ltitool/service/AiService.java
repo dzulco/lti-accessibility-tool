@@ -58,27 +58,32 @@ public class AiService {
     }
 
     public String generateTitleAndSections(String text) {
-        String query = "Actúa como un profesor experto en educación universitaria. Tu tarea es analizar el siguiente texto académico\n" +
-                "        y organizar el siguiente texto plano asignándole un título principal, un subtítulo y divídelo en secciones\n" +
-                "       lógicas agregando un título a cada sección. RESPETA EL TEXTO ORIGINAL EXACTAMENTE SIN ALTERAR NI CAMBIAR UNA\n" +
-                "        SOLA PALABRA: REGLAS ESTRICTAS:\n" +
-                "        1. Crea la cantidad de secciones que creas apropiadas.\n" +
-                "        2. Tu respuesta debe tener el siguiente formato estricto de JSON (para que mi programa lo procese fácilmente):\n" +
-                "        {\n" +
-                "        \"titulo\": \"Título que represente al texto.\",\n" +
-                "        \"subtitulo\": \"Subtítulo que represente al texto.\",\n" +
-                "        \"secciones\": [\n" +
-                "                         {\n" +
-                "                          \"titulo_seccion\": \"Título que represente a la sección.\",\n" +
-                "                          \"contenido\": \"Aquí va la parte del texto que decidiste ubicar aquí.\"\n" +
-                "                         }\n" +
-                "                       ]\n" +
-                "        }\n" +
-                "        3. RESPETA EL TEXTO ORIGINAL EXACTAMENTE SIN ALTERAR NI CAMBIAR UNA SOLA PALABRA\n" +
-                "        4. NO inventes información, no agregues introducciones, saludos ni explicaciones. Devuelve SOLAMENTE el formato JSON solicitado.\n" +
-                "        TEXTO A ANALIZAR: ";
-        return executeAiCall(query + text);
+    String query = """
+        Analiza el siguiente texto extraído de un PDF y divídelo en secciones lógicas en formato JSON.
+
+        REGLAS DE INTEGRIDAD (ESTRICTAS):
+        1. NO cambies, agregues, resumenes ni omitas NINGUNA palabra. La unión de todas las secciones debe reconstruir el texto original al 100%.
+        2. Conserva el orden exacto del texto original.
+        3. Solo puedes asignar 'titulo', 'subtitulo' y los 'titulo_seccion' de cada parte.
+
+        FORMATO DE SALIDA (JSON ÚNICAMENTE):
+        {
+          "titulo": "Título representativo",
+          "subtitulo": "Subtítulo representativo",
+          "secciones": [
+            {
+              "titulo_seccion": "Nombre de la sección",
+              "contenido": "Fragmento exacto del texto original correspondientes a esta parte"
+            }
+          ]
+        }
+
+        TEXTO A PROCESAR:
+        """ + text;
+
+        return executeAiCall(query);
     }
+
 
     // Centralized private method with error handling
     private String executeAiCall(String prompt) {
