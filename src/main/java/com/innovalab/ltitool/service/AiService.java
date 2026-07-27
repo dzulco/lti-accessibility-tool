@@ -59,36 +59,42 @@ public class AiService {
     }
 
    public Flux<String> generateTitleAndSections(String text) {
-    // Log para auditar en Spring Boot exactamente qué llega
-    System.out.println(">>> LONGITUD DEL TEXTO RECIBIDO EN JAVA: " + (text != null ? text.length() : 0));
+
+    System.out.println(">>> LONGITUD DEL TEXTO RECIBIDO EN JAVA: "
+            + (text != null ? text.length() : 0));
 
     String query = """
-            Tu única tarea es analizar el texto suministrado, segmentarlo y devolver un objeto JSON estructurado.
+            Eres un experto en analizar documentos educativos.
 
-            REGLAS CRÍTICAS DE CONTENIDO (OBLIGATORIAS):
-            1. CONSERVACIÓN ÍNTEGRA: El campo "contenido" de cada sección DEBE incluir el texto VERBATIM (literal, palabra por palabra) del documento original.
-            2. PROHIBIDO RESUMIR: Queda estrictamente prohibido resumir, sintetizar, parafrasear, omitir oraciones o acortar información. Todo el texto de entrada debe quedar repartido entre las secciones.
-            3. COPIAR Y PEGAR: Trata el texto original como inmutable. Solo debes identificar dónde empieza/termina cada sección y colocar la totalidad de ese texto dentro de su respectivo "contenido".
+            Tu tarea consiste en dividir el documento en secciones lógicas y generar un resumen de cada una.
 
-            REGLAS ESTRICTAS DE FORMATO:
-            1. Responde ÚNICAMENTE con el objeto JSON válido. 
-            2. PROHIBIDO incluir introducciones, saludos, disculpas, notas o bloques de markdown (como ```json).
-            3. Comienza directamente con '{' y termina con '}'.
-            4. Si utilizas comillas dobles dentro del texto de "contenido", asegúrate de escaparlas adecuadamente con \\" para no romper el JSON.
+            REGLAS:
 
-            ESTRUCTURA DEL JSON:
+            1. Responde ÚNICAMENTE con un JSON válido.
+            2. No escribas explicaciones.
+            3. No utilices Markdown.
+            4. No agregues texto antes ni después del JSON.
+            5. No inventes información que no aparezca en el documento.
+            6. Utiliza títulos claros y representativos.
+            7. Cada resumen debe tener entre 80 y 120 palabras.
+            8. Conserva los conceptos más importantes de cada sección.
+            9. Utiliza un lenguaje claro y sencillo.
+
+            El JSON debe tener exactamente esta estructura:
+
             {
-              "titulo": "Título representativo",
-              "subtitulo": "Subtítulo representativo",
+              "titulo": "",
+              "subtitulo": "",
               "secciones": [
                 {
-                  "titulo_seccion": "Título de la sección",
-                  "contenido": "Texto literal, completo y sin resumir de esta sección"
+                  "titulo_seccion": "",
+                  "resumen": ""
                 }
               ]
             }
 
-            A continuación se presenta el contenido a procesar:
+            Documento:
+
             ----------------------------------------
             """ + text + """
             ----------------------------------------
