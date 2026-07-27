@@ -2,7 +2,6 @@ package com.innovalab.ltitool.service;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 
 @Service
 public class AiService {
@@ -58,61 +57,35 @@ public class AiService {
         return executeAiCall(query + text);
     }
 
-   public Flux<String> generateTitleAndSections(String text) {
-
-    System.out.println(">>> LONGITUD DEL TEXTO RECIBIDO EN JAVA: "
-            + (text != null ? text.length() : 0));
-
-    String query = """
-            Eres un experto en analizar documentos educativos.
-
-            Tu tarea consiste en dividir el documento en secciones lógicas y generar un resumen de cada una.
-
-            REGLAS:
-
-            1. Responde ÚNICAMENTE con un JSON válido.
-            2. No escribas explicaciones.
-            3. No utilices Markdown.
-            4. No agregues texto antes ni después del JSON.
-            5. No inventes información que no aparezca en el documento.
-            6. Utiliza títulos claros y representativos.
-            7. Cada resumen debe tener entre 80 y 120 palabras.
-            8. Conserva los conceptos más importantes de cada sección.
-            9. Utiliza un lenguaje claro y sencillo.
-
-            El JSON debe tener exactamente esta estructura:
-
-            {
-              "titulo": "",
-              "subtitulo": "",
-              "secciones": [
-                {
-                  "titulo_seccion": "",
-                  "resumen": ""
-                }
-              ]
-            }
-
-            Documento:
-
-            ----------------------------------------
-            """ + text + """
-            ----------------------------------------
-            """;
-
-    return chatClient.prompt(query)
-            .stream()
-            .content();
-}
-
+    public String generateTitleAndSections(String text) {
+        String query = "Actúa como un profesor experto en educación universitaria. Tu tarea es analizar el siguiente texto académico\n" +
+                "        y organizar el siguiente texto plano asignándole un título principal, un subtítulo y divídelo en secciones\n" +
+                "       lógicas agregando un título a cada sección. RESPETA EL TEXTO ORIGINAL EXACTAMENTE SIN ALTERAR NI CAMBIAR UNA\n" +
+                "        SOLA PALABRA: REGLAS ESTRICTAS:\n" +
+                "        1. Crea la cantidad de secciones que creas apropiadas.\n" +
+                "        2. Tu respuesta debe tener el siguiente formato estricto de JSON (para que mi programa lo procese fácilmente):\n" +
+                "        {\n" +
+                "        \"titulo\": \"Título que represente al texto.\",\n" +
+                "        \"subtitulo\": \"Subtítulo que represente al texto.\",\n" +
+                "        \"secciones\": [\n" +
+                "                         {\n" +
+                "                          \"titulo_seccion\": \"Título que represente a la sección.\",\n" +
+                "                          \"contenido\": \"Aquí va la parte del texto que decidiste ubicar aquí.\"\n" +
+                "                         }\n" +
+                "                       ]\n" +
+                "        }\n" +
+                "        3. RESPETA EL TEXTO ORIGINAL EXACTAMENTE SIN ALTERAR NI CAMBIAR UNA SOLA PALABRA\n" +
+                "        4. NO inventes información, no agregues introducciones, saludos ni explicaciones. Devuelve SOLAMENTE el formato JSON solicitado.\n" +
+                "        TEXTO A ANALIZAR: ";
+        return executeAiCall(query + text);
+    }
 
     // Centralized private method with error handling
     private String executeAiCall(String prompt) {
         try {
-            return chatClient.prompt(prompt)
-                    .call()
-                    .content();
+            return chatClient.prompt(prompt).call().content();
         } catch (Exception e) {
+            // Throw a RuntimeException to be caught by the Global Exception Handler
             throw new RuntimeException("Error de comunicación con la IA en el AiService: " + e.getMessage(), e);
         }
     }
