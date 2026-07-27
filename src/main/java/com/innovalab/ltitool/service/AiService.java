@@ -1,6 +1,7 @@
 package com.innovalab.ltitool.service;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -89,9 +90,10 @@ public class AiService {
     private String executeAiCall(String prompt) {
         try {
             return chatClient.prompt(prompt)
-                    .options(options -> options
+                    .options(ChatOptions.builder()
                             .temperature(0.0)
-                            .topP(0.1))
+                            .topP(0.1)
+                            .build())
                     .call()
                     .content();
         } catch (Exception e) {
