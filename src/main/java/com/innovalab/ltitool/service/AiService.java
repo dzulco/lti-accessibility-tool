@@ -78,7 +78,9 @@ public class AiService {
                 "        3. RESPETA EL TEXTO ORIGINAL EXACTAMENTE SIN ALTERAR NI CAMBIAR UNA SOLA PALABRA\n" +
                 "        4. NO inventes información, no agregues introducciones, saludos ni explicaciones. Devuelve SOLAMENTE el formato JSON solicitado.\n" +
                 "        TEXTO A ANALIZAR: ";
-        return executeAiCall(query + text);
+        return chatClient.prompt(query)
+                .stream()
+                .content();
     }
 
 
