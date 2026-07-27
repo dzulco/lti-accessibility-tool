@@ -83,7 +83,13 @@ public class AiService {
     // Centralized private method with error handling
     private String executeAiCall(String prompt) {
         try {
-            return chatClient.prompt(prompt).call().content();
+            return chatClient.prompt(prompt)
+                    .options(GoogleGenAiChatOptions.builder()
+                            .temperature(0.0) // Desactiva la aleatoriedad -> Respuestas más rápidas
+                            .topP(0.1)
+                            .build())
+                    .call()
+                    .content();
         } catch (Exception e) {
             // Throw a RuntimeException to be caught by the Global Exception Handler
             throw new RuntimeException("Error de comunicación con la IA en el AiService: " + e.getMessage(), e);
