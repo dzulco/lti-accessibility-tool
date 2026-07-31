@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Primary
+@Profile("!local-fake")
 public class GeminiAiService implements AiService{
 
     private final ChatClient chatClient;
