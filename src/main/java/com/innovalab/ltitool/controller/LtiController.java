@@ -1,137 +1,72 @@
 package com.innovalab.ltitool.controller;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.innovalab.ltitool.dto.LtiLaunchDTO;
-import com.innovalab.ltitool.service.LtiPersistenceService;
-import com.innovalab.ltitool.util.LtiMapper;
-import com.innovalab.ltitool.service.MoodleContentResolver;
-
-import org.springframework.beans.factory.annotation.Value;
+import com.innovalab.ltitool.service.LtiService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.UUID;
-
 
 @RestController
 @RequestMapping("/lti")
 public class LtiController {
 
-    private final MoodleContentResolver moodleContentResolver;
-    private final LtiPersistenceService ltiPersistenceService;
-    @Value("${moodle.auth-url}")
-    private String authUrl;
+    private final LtiService ltiService;
 
-    @Value("${app.react-url}")
-    private String appReactURL;
-
-
-    public LtiController(MoodleContentResolver moodleContentResolver, LtiPersistenceService ltiPersistenceService)
-    {
-        this.moodleContentResolver = moodleContentResolver;
-        this.ltiPersistenceService = ltiPersistenceService;
+    public LtiController(LtiService ltiService) {
+        this.ltiService = ltiService;
     }
-    // =====================================================
+
+    // ===================================================== //
     // OIDC LOGIN
-    // =====================================================
+    // ===================================================== //
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@RequestParam Map<String,String> params){
-
+    public ResponseEntity<?> login(@RequestParam Map<String, String> params) {
         System.out.println("\n========== LTI LOGIN ==========");
-        params.forEach((k,v) -> System.out.println(k+" = "+v) );
+        params.forEach((k, v) -> System.out.println(k + " = " + v));
 
-        String state = params.get("state");
-        String nonce = params.get("nonce");
+        try {
+            String redirectUrl = ltiService.processLogin(params);
 
-        if(state == null)
-            state = UUID.randomUUID().toString();
+            System.out.println("\n========== REDIRECT LMS AUTH ==========");
+            System.out.println(redirectUrl);
 
-        if(nonce == null)
-            nonce = UUID.randomUUID().toString();
-
-                    String redirect = authUrl +"?"
-                        + "scope=openid"
-                        + "&response_type=id_token"
-                        + "&response_mode=form_post"
-                        + "&client_id="
-                        + params.get("client_id")
-                        + "&redirect_uri="
-                        + URLEncoder.encode(
-                        params.get("target_link_uri"),
-                        StandardCharsets.UTF_8
-                )
-                        + "&login_hint="
-                        + params.get("login_hint")
-                        + "&lti_message_hint="
-                        + URLEncoder.encode(
-                        params.get("lti_message_hint"),
-                        StandardCharsets.UTF_8
-                )
-
-                        + "&state="
-                        + state
-                        + "&nonce="
-                        + nonce;
-
-        System.out.println("\n========== REDIRECT FINAL ==========");
-        System.out.println(redirect);
-
-        return ResponseEntity
-                .status(302)
-                .header("Location", redirect)
-                .build();
-    }
-
-    // =====================================================
-    // LTI LAUNCH
-    // =====================================================
-    @PostMapping("/launch")
-    public Object launch(@RequestParam Map<String,String> params ) {
-
-        System.out.println("\n========== LTI LAUNCH ==========");
-        String idToken = params.get("id_token");
-
-        if (idToken == null) {
             return ResponseEntity
-                    .badRequest()
-                    .body("Missing id_token");
+                    .status(HttpStatus.FOUND)
+                    .header("Location", redirectUrl)
+                    .build();
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
-
-        DecodedJWT jwt = JWT.decode(idToken);
-
-
-        LtiLaunchDTO dto = LtiMapper.fromJWT(jwt);
-        moodleContentResolver.resolveSectionId(dto);
-
-        ltiPersistenceService.saveLaunch(dto);
-
-        return new RedirectView(buildFrontendRedirectUrl(dto));
     }
 
+    // ===================================================== //
+    // LTI LAUNCH
+    // ===================================================== //
+    @PostMapping("/launch")
+    public ResponseEntity<Void> launch(@RequestParam Map<String, String> params) {
+        System.out.println("\n========== LTI LAUNCH ==========");
 
-    /**
-     * Construye de manera descriptiva la URL de redirección hacia el Frontend de React,
-     * adjuntando los parámetros de contexto e identificación del usuario necesarios.
-     *
-     * @param dto Datos del lanzamiento LTI procesados desde Moodle
-     * @return String URL completa con Query Params listos para el Frontend
-     */
-    private String buildFrontendRedirectUrl(LtiLaunchDTO dto) {
-        return UriComponentsBuilder.fromUriString(appReactURL)
-                .queryParam("userId", dto.getUserId()) // ID unívoco para futuras preferencias
-                .queryParam("user", dto.getName())
-                .queryParam("email", dto.getEmail())
-                .queryParam("course", dto.getCourseTitle())
-                .queryParam("section", dto.getSectionTitle())
-                .queryParam("pdfUrl", dto.getPdfUrl())
-                .build()
-                .toUriString();
+        try {
+            // Genera la URL con los query params hacia  frontend
+            String frontendRedirectUrl = ltiService.processLaunch(params);
+
+            // Retorna un HTTP 302 Redirect con la cabecera Location
+            return ResponseEntity
+                    .status(HttpStatus.FOUND) // HTTP 302
+                    .header("Location", frontendRedirectUrl)
+                    .build();
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
-
 }
