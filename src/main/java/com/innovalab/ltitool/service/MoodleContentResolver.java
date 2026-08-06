@@ -25,7 +25,6 @@ public class MoodleContentResolver {
      *   Cuando esta parado en esa tool obtenemos el 1er pdf que exista
      **/
     public void resolveSectionId(LtiLaunchDTO dto) {
-
         JsonNode sections = moodleClient.getCourseContents(Long.valueOf(dto.getCourseId()));
         String target = dto.getResourceLinkId(); // 👈 CLAVE REAL
 
@@ -48,7 +47,6 @@ public class MoodleContentResolver {
                 }
             }
         }
-
         // Si el ciclo termina y no se hizo el "return", lanzamos el error para el GlobalHandler
         throw new RuntimeException("No se encontró la herramienta LTI en el curso de Moodle.");
     }
